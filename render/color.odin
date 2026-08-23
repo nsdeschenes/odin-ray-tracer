@@ -7,6 +7,10 @@ import v "../vector"
 
 Color :: v.Vec3
 
+color :: proc(r, g, b: f64) -> Color {
+	return Color{e = {r, g, b}}
+}
+
 write_color :: proc(out: ^os.File, pixel_color: Color) {
 	r := pixel_color.e[0]
 	g := pixel_color.e[1]

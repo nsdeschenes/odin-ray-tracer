@@ -1,29 +1,38 @@
 package main
 
 import "core:fmt"
+import "core:math"
 import "core:os"
 
 import r "./render"
 import v "./vector"
 
-hit_sphere :: proc(center: v.Point3, radius: f64, ray: r.Ray) -> bool {
+hit_sphere :: proc(center: v.Point3, radius: f64, ray: r.Ray) -> f64 {
 	oc := v.sub(center, ray.orig)
 	a := v.dot(ray.dir, ray.dir)
 	b := -2.0 * v.dot(ray.dir, oc)
 	c := v.dot(oc, oc) - radius * radius
 	discriminant := b * b - 4 * a * c
-	return discriminant >= 0
+
+	if discriminant < 0 {
+		return -1.0
+	}
+
+	return (-b - math.sqrt_f64(discriminant)) / (2.0 * a)
 }
 
 ray_color :: proc(ray: r.Ray) -> r.Color {
-	if hit_sphere(v.point3(0, 0, -1), 0.5, ray) {
-		return r.Color{e = {1, 0, 0}}
+	t := hit_sphere(v.point3(0, 0, -1), 0.5, ray)
+	if t > 0.0 {
+		N := v.unit_vector(v.sub(r.at(ray, t), v.vec3(0, 0, -1)))
+		return v.mul_scalar(r.color(v.x(N) + 1, v.y(N) + 1, v.z(N) + 1), 0.5)
 	}
+
 	unit_direction := v.unit_vector(ray.dir)
 	a := 0.5 * (v.y(unit_direction) + 1.0)
 
-	color_a := v.mul_scalar(r.Color{e = {1, 1, 1}}, (1 - a))
-	color_b := v.mul_scalar(r.Color{e = {0.5, 0.7, 1}}, a)
+	color_a := v.mul_scalar(r.color(1, 1, 1), (1 - a))
+	color_b := v.mul_scalar(r.color(0.5, 0.7, 1), a)
 	return v.add(color_a, color_b)
 }
 
@@ -101,7 +110,7 @@ main :: proc() {
 				),
 			)
 			ray_direction := v.sub(pixel_center, camera_center)
-			ray := r.Ray{camera_center, ray_direction}
+			ray := r.ray(camera_center, ray_direction)
 
 			pixel_color := ray_color(ray)
 			r.write_color(file, pixel_color)
