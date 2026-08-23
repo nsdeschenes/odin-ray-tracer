@@ -4,14 +4,14 @@ import "core:fmt"
 import "core:math"
 import "core:os"
 
-import r "./render"
-import v "./vector"
+import render "./render"
+import vector "./vector"
 
-hit_sphere :: proc(center: v.Point3, radius: f64, ray: r.Ray) -> f64 {
-	oc := v.sub(center, ray.orig)
-	a := v.dot(ray.dir, ray.dir)
-	b := -2.0 * v.dot(ray.dir, oc)
-	c := v.dot(oc, oc) - radius * radius
+hit_sphere :: proc(center: vector.Point3, radius: f64, ray: render.Ray) -> f64 {
+	oc := vector.sub(center, ray.orig)
+	a := vector.dot(ray.dir, ray.dir)
+	b := -2.0 * vector.dot(ray.dir, oc)
+	c := vector.dot(oc, oc) - radius * radius
 	discriminant := b * b - 4 * a * c
 
 	if discriminant < 0 {
@@ -21,19 +21,22 @@ hit_sphere :: proc(center: v.Point3, radius: f64, ray: r.Ray) -> f64 {
 	return (-b - math.sqrt_f64(discriminant)) / (2.0 * a)
 }
 
-ray_color :: proc(ray: r.Ray) -> r.Color {
-	t := hit_sphere(v.point3(0, 0, -1), 0.5, ray)
+ray_color :: proc(ray: render.Ray) -> render.Color {
+	t := hit_sphere(vector.point3(0, 0, -1), 0.5, ray)
 	if t > 0.0 {
-		N := v.unit_vector(v.sub(r.at(ray, t), v.vec3(0, 0, -1)))
-		return v.mul_scalar(r.color(v.x(N) + 1, v.y(N) + 1, v.z(N) + 1), 0.5)
+		N := vector.unit_vector(vector.sub(render.at(ray, t), vector.vec3(0, 0, -1)))
+		return vector.mul_scalar(
+			render.color(vector.x(N) + 1, vector.y(N) + 1, vector.z(N) + 1),
+			0.5,
+		)
 	}
 
-	unit_direction := v.unit_vector(ray.dir)
-	a := 0.5 * (v.y(unit_direction) + 1.0)
+	unit_direction := vector.unit_vector(ray.dir)
+	a := 0.5 * (vector.y(unit_direction) + 1.0)
 
-	color_a := v.mul_scalar(r.color(1, 1, 1), (1 - a))
-	color_b := v.mul_scalar(r.color(0.5, 0.7, 1), a)
-	return v.add(color_a, color_b)
+	color_a := vector.mul_scalar(render.color(1, 1, 1), (1 - a))
+	color_b := vector.mul_scalar(render.color(0.5, 0.7, 1), a)
+	return vector.add(color_a, color_b)
 }
 
 main :: proc() {
@@ -49,31 +52,31 @@ main :: proc() {
 	focal_length := 1.0
 	viewport_height := 2.0
 	viewport_width := viewport_height * (cast(f64)image_width / cast(f64)image_height)
-	camera_center := v.point3(0, 0, 0)
+	camera_center := vector.point3(0, 0, 0)
 
 	// Calculate the vectors across the horizontal and down the
 	// vertical viewport edges
-	viewport_u := v.vec3(viewport_width, 0, 0)
-	viewport_v := v.vec3(0, -viewport_height, 0)
+	viewport_u := vector.vec3(viewport_width, 0, 0)
+	viewport_v := vector.vec3(0, -viewport_height, 0)
 
 	// Calculate the horizontal and vertical delta vectors
 	// from pixel to pixel
-	pixel_delta_u := v.div(viewport_u, cast(f64)image_width)
-	pixel_delta_v := v.div(viewport_v, cast(f64)image_height)
+	pixel_delta_u := vector.div(viewport_u, cast(f64)image_width)
+	pixel_delta_v := vector.div(viewport_v, cast(f64)image_height)
 
 	// Calculate the location of the upper left panel
-	viewport_upper_left := v.sub(
-		v.sub(
-			v.sub(camera_center, v.vec3(0, 0, cast(f64)focal_length)),
-			v.div(viewport_u, cast(f64)2),
+	viewport_upper_left := vector.sub(
+		vector.sub(
+			vector.sub(camera_center, vector.vec3(0, 0, cast(f64)focal_length)),
+			vector.div(viewport_u, cast(f64)2),
 		),
-		v.div(viewport_v, cast(f64)2),
+		vector.div(viewport_v, cast(f64)2),
 	)
 
 
-	pixel00_loc := v.add(
+	pixel00_loc := vector.add(
 		viewport_upper_left,
-		v.mul_scalar(v.add(pixel_delta_u, pixel_delta_v), 0.5),
+		vector.mul_scalar(vector.add(pixel_delta_u, pixel_delta_v), 0.5),
 	)
 
 	// Renderer
@@ -102,18 +105,18 @@ main :: proc() {
 	for j := 0; j < image_height; j += 1 {
 		fmt.print("\rScanlines remaining: ", image_height - j, " ")
 		for i := 0; i < image_width; i += 1 {
-			pixel_center := v.add(
+			pixel_center := vector.add(
 				pixel00_loc,
-				v.add(
-					v.mul_scalar(pixel_delta_u, cast(f64)i),
-					v.mul_scalar(pixel_delta_v, cast(f64)j),
+				vector.add(
+					vector.mul_scalar(pixel_delta_u, cast(f64)i),
+					vector.mul_scalar(pixel_delta_v, cast(f64)j),
 				),
 			)
-			ray_direction := v.sub(pixel_center, camera_center)
-			ray := r.ray(camera_center, ray_direction)
+			ray_direction := vector.sub(pixel_center, camera_center)
+			ray := render.ray(camera_center, ray_direction)
 
 			pixel_color := ray_color(ray)
-			r.write_color(file, pixel_color)
+			render.write_color(file, pixel_color)
 		}
 	}
 
