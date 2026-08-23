@@ -9,16 +9,16 @@ import vector "./vector"
 
 hit_sphere :: proc(center: vector.Point3, radius: f64, ray: render.Ray) -> f64 {
 	oc := vector.sub(center, ray.orig)
-	a := vector.dot(ray.dir, ray.dir)
-	b := -2.0 * vector.dot(ray.dir, oc)
-	c := vector.dot(oc, oc) - radius * radius
-	discriminant := b * b - 4 * a * c
+	a := vector.length_squared(ray.dir)
+	h := vector.dot(ray.dir, oc)
+	c := vector.length_squared(oc) - radius * radius
+	discriminant := h * h - a * c
 
 	if discriminant < 0 {
 		return -1.0
 	}
 
-	return (-b - math.sqrt_f64(discriminant)) / (2.0 * a)
+	return (h - math.sqrt(discriminant)) / a
 }
 
 ray_color :: proc(ray: render.Ray) -> render.Color {
