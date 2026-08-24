@@ -80,7 +80,7 @@ main :: proc() {
 	)
 
 	// Renderer
-	file, open_err := os.open("image.ppm", os.O_WRONLY)
+	file, open_err := os.open("image.ppm", os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
 
 	if open_err != nil {
 		fmt.println("Failed to open file")
