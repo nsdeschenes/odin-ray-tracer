@@ -5,30 +5,14 @@ import "core:math"
 import "core:os"
 
 import render "./render"
+import shapes "./shapes"
 import vector "./vector"
 
-hit_sphere :: proc(center: vector.Point3, radius: f64, ray: render.Ray) -> f64 {
-	oc := vector.sub(center, ray.orig)
-	a := vector.length_squared(ray.dir)
-	h := vector.dot(ray.dir, oc)
-	c := vector.length_squared(oc) - radius * radius
-	discriminant := h * h - a * c
 
-	if discriminant < 0 {
-		return -1.0
-	}
-
-	return (h - math.sqrt(discriminant)) / a
-}
-
-ray_color :: proc(ray: render.Ray) -> render.Color {
-	t := hit_sphere(vector.point3(0, 0, -1), 0.5, ray)
-	if t > 0.0 {
-		N := vector.unit_vector(vector.sub(render.at(ray, t), vector.vec3(0, 0, -1)))
-		return vector.mul_scalar(
-			render.color(vector.x(N) + 1, vector.y(N) + 1, vector.z(N) + 1),
-			0.5,
-		)
+ray_color :: proc(ray: render.Ray, world: shapes.HittableList) -> render.Color {
+	rec: shapes.HitRecord
+	if shapes.hit_hittable_list(world, ray, 0, math.INF_F64, &rec) {
+		return vector.mul_scalar(vector.add(render.color(1, 1, 1), rec.normal), 0.5)
 	}
 
 	unit_direction := vector.unit_vector(ray.dir)
@@ -47,6 +31,17 @@ main :: proc() {
 	// Calculate the image height, and ensure its at least 1.
 	image_height := cast(int)(cast(f64)image_width / aspect_ratio)
 	image_height = (image_height < 1) ? 1 : image_height
+
+	// World
+	world := shapes.hittable_list()
+	shapes.add_hittable_object(
+		&world,
+		shapes.Sphere{center = vector.point3(0, 0, -1), radius = 0.5},
+	)
+	shapes.add_hittable_object(
+		&world,
+		shapes.Sphere{center = vector.point3(0, -100.5, -1), radius = 100},
+	)
 
 	// Camera
 	focal_length := 1.0
@@ -80,7 +75,7 @@ main :: proc() {
 	)
 
 	// Renderer
-	file, open_err := os.open("image.ppm", os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	file, open_err := os.open("image.ppm", os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
 
 	if open_err != nil {
 		fmt.println("Failed to open file")
@@ -115,7 +110,7 @@ main :: proc() {
 			ray_direction := vector.sub(pixel_center, camera_center)
 			ray := render.ray(camera_center, ray_direction)
 
-			pixel_color := ray_color(ray)
+			pixel_color := ray_color(ray, world)
 			render.write_color(file, pixel_color)
 		}
 	}

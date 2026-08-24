@@ -38,7 +38,7 @@ hit_hittable_list :: proc(
 
 	for object in list.objects {
 		if (hit(object, ray, ray_tmin, closest_so_far, &temp_rec)) {
-			hit_anything = false
+			hit_anything = true
 			closest_so_far = temp_rec.t
 			rec^ = temp_rec
 		}
