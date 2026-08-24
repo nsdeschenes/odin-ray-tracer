@@ -18,6 +18,15 @@ set_face_normal :: proc(self: ^HitRecord, ray: render.Ray, outward_normal: vecto
 	self.normal = self.front_face ? outward_normal : vector.neg(outward_normal)
 }
 
-Hittable :: struct {
-	hit: proc(self: rawptr, r: render.Ray, ray_tmin: f64, ray_tmax: f64, rec: ^HitRecord) -> bool,
+Hittable :: union {
+	Sphere,
+}
+
+hit :: proc(h: Hittable, ray: render.Ray, ray_tmin: f64, ray_tmax: f64, rec: ^HitRecord) -> bool {
+	switch obj in h {
+	case Sphere:
+		return hit_sphere(obj, ray, ray_tmin, ray_tmax, rec)
+	}
+
+	return false
 }

@@ -11,14 +11,12 @@ Sphere :: struct {
 }
 
 hit_sphere :: proc(
-	self: rawptr,
+	sphere: Sphere,
 	r: render.Ray,
 	ray_tmin: f64,
 	ray_tmax: f64,
 	rec: ^HitRecord,
 ) -> bool {
-	sphere := cast(^Sphere)self
-
 	oc := vector.sub(sphere.center, r.orig)
 	a := vector.length_squared(r.dir)
 	h := vector.dot(r.dir, oc)
