@@ -42,8 +42,8 @@ hit_sphere :: proc(
 
 	rec.t = root
 	rec.p = render.at(r, rec.t)
-	rec.normal = vector.div(vector.sub(rec.p, sphere.center), sphere.radius)
-
+	outward_normal := vector.div(vector.sub(rec.p, sphere.center), sphere.radius)
+	set_face_normal(rec, r, outward_normal)
 
 	return true
 }
