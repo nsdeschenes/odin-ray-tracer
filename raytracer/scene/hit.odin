@@ -1,4 +1,4 @@
-package shapes
+package scene
 
 hit :: proc {
 	hit_hittable,

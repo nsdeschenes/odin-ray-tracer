@@ -1,4 +1,4 @@
-package interval
+package geometry
 
 import "core:math"
 

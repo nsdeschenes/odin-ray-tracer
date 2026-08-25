@@ -1,17 +1,10 @@
 package render
 
+import geometry "../geometry"
 import "core:fmt"
 import "core:os"
 
-import vector "../vector"
-
-Color :: vector.Vec3
-
-color :: proc(r, g, b: f64) -> Color {
-	return Color{e = {r, g, b}}
-}
-
-write_color :: proc(out: ^os.File, pixel_color: Color) {
+write_color :: proc(out: ^os.File, pixel_color: geometry.Color) {
 	r := pixel_color.e[0]
 	g := pixel_color.e[1]
 	b := pixel_color.e[2]

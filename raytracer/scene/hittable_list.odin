@@ -1,7 +1,6 @@
-package shapes
+package scene
 
-import interval "../interval"
-import render "../render"
+import geometry "../geometry"
 
 HittableList :: struct {
 	objects: [dynamic]Hittable,
@@ -36,8 +35,8 @@ clear_hittable_list :: proc(list: ^HittableList) {
 @(private)
 hit_hittable_list :: proc(
 	list: HittableList,
-	ray: render.Ray,
-	ray_t: interval.Interval,
+	ray: geometry.Ray,
+	ray_t: geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
 	temp_rec: HitRecord
@@ -45,7 +44,7 @@ hit_hittable_list :: proc(
 	closest_so_far := ray_t.max
 
 	for object in list.objects {
-		if (hit(object, ray, interval.interval(ray_t.min, closest_so_far), &temp_rec)) {
+		if (hit(object, ray, geometry.interval(ray_t.min, closest_so_far), &temp_rec)) {
 			hit_anything = true
 			closest_so_far = temp_rec.t
 			rec^ = temp_rec
