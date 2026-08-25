@@ -33,6 +33,7 @@ clear_hittable_list :: proc(list: ^HittableList) {
 	clear(&list.objects)
 }
 
+@(private)
 hit_hittable_list :: proc(
 	list: HittableList,
 	ray: render.Ray,
