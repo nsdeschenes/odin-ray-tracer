@@ -5,15 +5,17 @@ import "core:math"
 import "core:os"
 import "core:thread"
 
+import interval "./interval"
 import render "./render"
 import shapes "./shapes"
 import vector "./vector"
 
 THREAD_COUNT :: 8
 
+
 ray_color :: proc(ray: render.Ray, world: shapes.HittableList) -> render.Color {
 	rec: shapes.HitRecord
-	if shapes.hit_hittable_list(world, ray, 0, math.INF_F64, &rec) {
+	if shapes.hit_hittable_list(world, ray, interval.interval(0, math.INF_F64), &rec) {
 		return vector.mul_scalar(vector.add(render.color(1, 1, 1), rec.normal), 0.5)
 	}
 

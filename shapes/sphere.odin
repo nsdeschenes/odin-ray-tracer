@@ -4,17 +4,18 @@ import "core:math"
 
 import render "../render"
 import vector "../vector"
+import interval "../interval"
 
 Sphere :: struct {
 	center: vector.Point3,
 	radius: f64,
 }
 
+@(private)
 hit_sphere :: proc(
 	sphere: Sphere,
 	r: render.Ray,
-	ray_tmin: f64,
-	ray_tmax: f64,
+	ray_t: interval.Interval,
 	rec: ^HitRecord,
 ) -> bool {
 	oc := vector.sub(sphere.center, r.orig)
@@ -31,9 +32,9 @@ hit_sphere :: proc(
 
 	// Find the nearest root that lies in the acceptable range.
 	root := (h - sqrtd) / a
-	if root <= ray_tmin || ray_tmax <= root {
+	if !interval.surrounds(ray_t, root) {
 		root = (h + sqrtd) / a
-		if root <= ray_tmin || ray_tmax <= root {
+		if !interval.surrounds(ray_t, root) {
 			return false
 		}
 	}

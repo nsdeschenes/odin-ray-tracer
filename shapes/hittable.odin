@@ -1,5 +1,6 @@
 package shapes
 
+import interval "../interval"
 import render "../render"
 import vector "../vector"
 
@@ -22,10 +23,10 @@ Hittable :: union {
 	Sphere,
 }
 
-hit :: proc(h: Hittable, ray: render.Ray, ray_tmin: f64, ray_tmax: f64, rec: ^HitRecord) -> bool {
+hit :: proc(h: Hittable, ray: render.Ray, ray_t: interval.Interval, rec: ^HitRecord) -> bool {
 	switch obj in h {
 	case Sphere:
-		return hit_sphere(obj, ray, ray_tmin, ray_tmax, rec)
+		return hit_sphere(obj, ray, ray_t, rec)
 	}
 
 	return false
