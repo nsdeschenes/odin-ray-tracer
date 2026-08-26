@@ -12,11 +12,8 @@ Camera :: struct {
 	pixel_delta_v: geometry.Vec3,
 }
 
-initialize :: proc() -> Camera {
-	camera := Camera{}
-
-	camera.aspect_ratio = 1.0
-	camera.image_width = 100
+initialize :: proc(aspect_ration: f64, image_width: int) -> Camera {
+	camera := Camera{aspect_ratio=aspect_ration, image_width=image_width}
 
 	camera.image_height = cast(int)(cast(f64)camera.image_width / camera.aspect_ratio)
 	camera.image_height = (camera.image_height < 1) ? 1 : camera.image_height

@@ -16,9 +16,9 @@ main :: proc() {
 		scene.Sphere{center = geometry.point3(0, -100.5, -1), radius = 100},
 	)
 
-	cam := render.initialize()
-	cam.aspect_ratio = 16.0 / 9.0
-	cam.image_width = 400
+	aspect_ratio := 16.0 / 9.0
+	image_width := 400
+	cam := render.initialize(aspect_ratio, image_width)
 
 	render.render(cam, &world)
 }
