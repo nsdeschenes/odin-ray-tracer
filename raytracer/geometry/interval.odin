@@ -32,3 +32,15 @@ contains :: proc(i: Interval, x: f64) -> bool {
 surrounds :: proc(i: Interval, x: f64) -> bool {
 	return i.min < x && x < i.max
 }
+
+clamp :: proc(interval: Interval, x: f64) -> f64 {
+	if x < interval.min {
+		return interval.min
+	}
+
+    if x > interval.max {
+        return interval.max
+    }
+
+	return x
+}

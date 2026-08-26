@@ -12,15 +12,11 @@ THREAD_COUNT :: 8
 
 @(private)
 RenderJob :: struct {
-	start_y:       int,
-	end_y:         int,
-	image_width:   int,
-	pixels:        []geometry.Vec3,
-	pixel00_loc:   geometry.Point3,
-	pixel_delta_u: geometry.Vec3,
-	pixel_delta_v: geometry.Vec3,
-	camera_center: geometry.Point3,
-	world:         ^scene.HittableList,
+	start_y: int,
+	end_y:   int,
+	pixels:  []geometry.Vec3,
+	world:   ^scene.HittableList,
+	camera:  Camera,
 }
 
 render :: proc(camera: Camera, world: ^scene.HittableList) {
@@ -66,15 +62,11 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 		}
 
 		jobs[thread_index] = RenderJob {
-			start_y       = start_y,
-			end_y         = end_y,
-			image_width   = camera.image_width,
-			pixels        = pixels,
-			pixel00_loc   = camera.pixel00_loc,
-			pixel_delta_u = camera.pixel_delta_u,
-			pixel_delta_v = camera.pixel_delta_v,
-			camera_center = camera.center,
-			world         = world,
+			start_y = start_y,
+			end_y   = end_y,
+			pixels  = pixels,
+			world   = world,
+			camera  = camera,
 		}
 
 		threads[thread_index] = thread.create_and_start_with_data(&jobs[thread_index], render_rows)
@@ -104,23 +96,25 @@ render_rows :: proc(data: rawptr) {
 	job := cast(^RenderJob)data
 
 	for j := job.start_y; j < job.end_y; j += 1 {
-		for i := 0; i < job.image_width; i += 1 {
+		for i := 0; i < job.camera.image_width; i += 1 {
 			pixel_center := geometry.add(
-				job.pixel00_loc,
+				job.camera.pixel00_loc,
 				geometry.add(
-					geometry.mul_scalar(job.pixel_delta_u, cast(f64)i),
-					geometry.mul_scalar(job.pixel_delta_v, cast(f64)j),
+					geometry.mul_scalar(job.camera.pixel_delta_u, cast(f64)i),
+					geometry.mul_scalar(job.camera.pixel_delta_v, cast(f64)j),
 				),
 			)
 
-			ray_direction := geometry.sub(pixel_center, job.camera_center)
+			ray_direction := geometry.sub(pixel_center, job.camera.center)
 
-			r := geometry.ray(job.camera_center, ray_direction)
+			pixel_color := geometry.color(0, 0, 0)
+			for sample := 0; sample < job.camera.samples_per_pixel; sample += 1 {
+				r := get_ray(job.camera, i, j)
+				geometry.add_assign(&pixel_color, ray_color(r, job.world^))
+			}
 
-			pixel_color := ray_color(r, job.world^)
-
-			index := j * job.image_width + i
-			job.pixels[index] = pixel_color
+			index := j * job.camera.image_width + i
+			job.pixels[index] = geometry.mul_scalar(pixel_color, job.camera.pixel_samples_scale)
 		}
 	}
 }

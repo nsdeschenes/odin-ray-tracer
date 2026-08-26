@@ -3,27 +3,28 @@ package render
 import geometry "../geometry"
 
 Camera :: struct {
-	aspect_ratio:  f64,
-	image_width:   int,
-	image_height:  int,
-	center:        geometry.Point3,
-	pixel00_loc:   geometry.Point3,
-	pixel_delta_u: geometry.Vec3,
-	pixel_delta_v: geometry.Vec3,
+	aspect_ratio:        f64,
+	image_width:         int,
+	image_height:        int,
+	samples_per_pixel:   int,
+	pixel_samples_scale: f64,
+	center:              geometry.Point3,
+	pixel00_loc:         geometry.Point3,
+	pixel_delta_u:       geometry.Vec3,
+	pixel_delta_v:       geometry.Vec3,
 }
 
-initialize :: proc(aspect_ration: f64, image_width: int) -> Camera {
-	camera := Camera{aspect_ratio=aspect_ration, image_width=image_width}
+initialize :: proc(aspect_ratio: f64, image_width: int, samples_per_pixel: int) -> Camera {
+	pixel_samples_scale := 1.0 / cast(f64)samples_per_pixel
 
-	camera.image_height = cast(int)(cast(f64)camera.image_width / camera.aspect_ratio)
-	camera.image_height = (camera.image_height < 1) ? 1 : camera.image_height
+	image_height := cast(int)(cast(f64)image_width / aspect_ratio)
+	image_height = (image_height < 1) ? 1 : image_height
 	center := geometry.point3(0, 0, 0)
 
 	// Determine viewport dimensions
 	focal_length := 1.0
 	viewport_height := 2.0
-	viewport_width :=
-		viewport_height * (cast(f64)camera.image_width / cast(f64)camera.image_height)
+	viewport_width := viewport_height * (cast(f64)image_width / cast(f64)image_height)
 
 	// Calculate the vectors across the horizontal and down the
 	// vertical viewport edges
@@ -32,8 +33,8 @@ initialize :: proc(aspect_ration: f64, image_width: int) -> Camera {
 
 	// Calculate the horizontal and vertical delta vectors
 	// from pixel to pixel
-	camera.pixel_delta_u = geometry.div(viewport_u, cast(f64)camera.image_width)
-	camera.pixel_delta_v = geometry.div(viewport_v, cast(f64)camera.image_height)
+	pixel_delta_u := geometry.div(viewport_u, cast(f64)image_width)
+	pixel_delta_v := geometry.div(viewport_v, cast(f64)image_height)
 
 	// Calculate the location of the upper left panel
 	viewport_upper_left := geometry.sub(
@@ -44,10 +45,45 @@ initialize :: proc(aspect_ration: f64, image_width: int) -> Camera {
 		geometry.div(viewport_v, cast(f64)2),
 	)
 
-	camera.pixel00_loc = geometry.add(
+	pixel00_loc := geometry.add(
 		viewport_upper_left,
-		geometry.mul_scalar(geometry.add(camera.pixel_delta_u, camera.pixel_delta_v), 0.5),
+		geometry.mul_scalar(geometry.add(pixel_delta_u, pixel_delta_v), 0.5),
 	)
 
-	return camera
+	return Camera {
+		aspect_ratio = aspect_ratio,
+		image_width = image_width,
+		image_height = image_height,
+		samples_per_pixel = samples_per_pixel,
+		pixel_samples_scale = pixel_samples_scale,
+		center = center,
+		pixel00_loc = pixel00_loc,
+		pixel_delta_u = pixel_delta_u,
+		pixel_delta_v = pixel_delta_v,
+	}
+}
+
+get_ray :: proc(cam: Camera, i, j: int) -> geometry.Ray {
+	// Construct a camera ray originating from the origin and directed at randomly sampled
+	// point around the pixel location i, j.
+	offset := sample_square()
+
+
+	pixel_sample := geometry.add(
+		cam.pixel00_loc,
+		geometry.add(
+			geometry.mul_scalar(cam.pixel_delta_u, (cast(f64)i + geometry.x(offset))),
+			geometry.mul_scalar(cam.pixel_delta_v, (cast(f64)j + geometry.y(offset))),
+		),
+	)
+
+	ray_origin := cam.center
+	ray_direction := geometry.sub(pixel_sample, ray_origin)
+
+	return geometry.ray(ray_origin, ray_direction)
+}
+
+sample_square :: proc() -> geometry.Vec3 {
+	// Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
+	return geometry.vec3(random_double() - 0.5, random_double() - 0.5, 0)
 }

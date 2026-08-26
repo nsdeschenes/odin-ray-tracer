@@ -18,7 +18,8 @@ main :: proc() {
 
 	aspect_ratio := 16.0 / 9.0
 	image_width := 400
-	cam := render.initialize(aspect_ratio, image_width)
+	samples_per_pixel := 100
+	cam := render.initialize(aspect_ratio, image_width, samples_per_pixel)
 
 	render.render(cam, &world)
 }
