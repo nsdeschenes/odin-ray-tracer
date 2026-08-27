@@ -2,19 +2,21 @@ package scene
 
 import geometry "../geometry"
 
+
 HitRecord :: struct {
 	p:          geometry.Point3,
 	normal:     geometry.Vec3,
+	mat:        ^Material,
 	t:          f64,
 	front_face: bool,
 }
 
-set_face_normal :: proc(self: ^HitRecord, ray: geometry.Ray, outward_normal: geometry.Vec3) {
+set_face_normal :: proc(rec: ^HitRecord, ray: geometry.Ray, outward_normal: geometry.Vec3) {
 	// Sets the hit record normal vector.
 	// NOTE: the parameter `outward_normal` is assumed to have unit length.
 
-	self.front_face = geometry.dot(ray.dir, outward_normal) < 0
-	self.normal = self.front_face ? outward_normal : geometry.neg(outward_normal)
+	rec.front_face = geometry.dot(ray.dir, outward_normal) < 0
+	rec.normal = rec.front_face ? outward_normal : geometry.neg(outward_normal)
 }
 
 Hittable :: union {
