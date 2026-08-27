@@ -9,13 +9,19 @@ Camera :: struct {
 	image_height:        int,
 	samples_per_pixel:   int,
 	pixel_samples_scale: f64,
+	max_depth:           int,
 	center:              geometry.Point3,
 	pixel00_loc:         geometry.Point3,
 	pixel_delta_u:       geometry.Vec3,
 	pixel_delta_v:       geometry.Vec3,
 }
 
-initialize :: proc(aspect_ratio: f64, image_width: int, samples_per_pixel: int) -> Camera {
+initialize :: proc(
+	aspect_ratio: f64 = 1.0,
+	image_width: int = 100,
+	samples_per_pixel: int = 10,
+	max_depth: int = 10,
+) -> Camera {
 	pixel_samples_scale := 1.0 / cast(f64)samples_per_pixel
 
 	image_height := cast(int)(cast(f64)image_width / aspect_ratio)
@@ -57,6 +63,7 @@ initialize :: proc(aspect_ratio: f64, image_width: int, samples_per_pixel: int) 
 		image_height = image_height,
 		samples_per_pixel = samples_per_pixel,
 		pixel_samples_scale = pixel_samples_scale,
+		max_depth = max_depth,
 		center = center,
 		pixel00_loc = pixel00_loc,
 		pixel_delta_u = pixel_delta_u,
