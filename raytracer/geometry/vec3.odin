@@ -53,6 +53,12 @@ length_squared :: proc(v: Vec3) -> f64 {
 	return v.e[0] * v.e[0] + v.e[1] * v.e[1] + v.e[2] * v.e[2]
 }
 
+near_zero :: proc(e: Vec3) -> bool {
+	// Return true if the vector is close to zero in all dimensions
+	s := 1e-8
+	return math.abs(x(e)) < s && math.abs(y(e)) < s && math.abs(z(e)) < s
+}
+
 @(private = "file")
 random_no_args :: proc() -> Vec3 {
 	return vec3(utils.random_double(), utils.random_double(), utils.random_double())
