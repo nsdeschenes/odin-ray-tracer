@@ -11,6 +11,9 @@ import "core:thread"
 THREAD_COUNT :: 8
 
 @(private)
+ROWS_PER_JOB :: 8
+
+@(private)
 RenderJob :: struct {
 	start_y: int,
 	end_y:   int,
@@ -47,21 +50,22 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 	pixels := make([]geometry.Vec3, pixel_count)
 	defer delete(pixels)
 
-	jobs: [THREAD_COUNT]RenderJob
-	threads: [THREAD_COUNT]^thread.Thread
+	// Create worker pool
+	pool: thread.Pool
+	thread.pool_init(&pool, context.allocator, THREAD_COUNT)
+	defer thread.pool_destroy(&pool)
 
-	rows_per_thread := camera.image_height / THREAD_COUNT
+	thread.pool_start(&pool)
 
-	for thread_index := 0; thread_index < THREAD_COUNT; thread_index += 1 {
-		start_y := thread_index * rows_per_thread
-		end_y := start_y + rows_per_thread
+	// Create jobs
+	job_count := (camera.image_height + ROWS_PER_JOB - 1) / ROWS_PER_JOB
+	jobs := make([]RenderJob, job_count)
 
-		// Last thread takes any remainder
-		if thread_index == THREAD_COUNT - 1 {
-			end_y = camera.image_height
-		}
+	for job_index := 0; job_index < job_count; job_index += 1 {
+		start_y := job_index * ROWS_PER_JOB
+		end_y := min(start_y + ROWS_PER_JOB, camera.image_height)
 
-		jobs[thread_index] = RenderJob {
+		jobs[job_index] = RenderJob {
 			start_y = start_y,
 			end_y   = end_y,
 			pixels  = pixels,
@@ -69,16 +73,11 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 			camera  = camera,
 		}
 
-		threads[thread_index] = thread.create_and_start_with_data(&jobs[thread_index], render_rows)
+		thread.pool_add_task(&pool, context.allocator, render_rows, &jobs[job_index], job_index)
 	}
 
-	for t in threads {
-		thread.join(t)
-	}
-
-	for t in threads {
-		thread.destroy(t)
-	}
+	// Wait for all jobs
+	thread.pool_finish(&pool)
 
 	for j := 0; j < camera.image_height; j += 1 {
 		fmt.print("\rScanlines remaining: ", camera.image_height - j, " ")
@@ -92,21 +91,11 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 }
 
 @(private)
-render_rows :: proc(data: rawptr) {
-	job := cast(^RenderJob)data
+render_rows :: proc(task: thread.Task) {
+	job := cast(^RenderJob)task.data
 
 	for j := job.start_y; j < job.end_y; j += 1 {
 		for i := 0; i < job.camera.image_width; i += 1 {
-			pixel_center := geometry.add(
-				job.camera.pixel00_loc,
-				geometry.add(
-					geometry.mul_scalar(job.camera.pixel_delta_u, cast(f64)i),
-					geometry.mul_scalar(job.camera.pixel_delta_v, cast(f64)j),
-				),
-			)
-
-			ray_direction := geometry.sub(pixel_center, job.camera.center)
-
 			pixel_color := geometry.color(0, 0, 0)
 			for sample := 0; sample < job.camera.samples_per_pixel; sample += 1 {
 				r := get_ray(job.camera, i, j)
