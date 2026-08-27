@@ -1,5 +1,6 @@
 package geometry
 
+import utils "../utils"
 import "core:math"
 
 Vec3 :: struct {
@@ -52,6 +53,25 @@ length_squared :: proc(v: Vec3) -> f64 {
 	return v.e[0] * v.e[0] + v.e[1] * v.e[1] + v.e[2] * v.e[2]
 }
 
+@(private = "file")
+random_no_args :: proc() -> Vec3 {
+	return vec3(utils.random_double(), utils.random_double(), utils.random_double())
+}
+
+@(private = "file")
+random_with_args :: proc(min, max: f64) -> Vec3 {
+	return vec3(
+		utils.random_double(min, max),
+		utils.random_double(min, max),
+		utils.random_double(min, max),
+	)
+}
+
+random :: proc {
+	random_no_args,
+	random_with_args,
+}
+
 length :: proc(v: Vec3) -> f64 {
 	return math.sqrt(length_squared(v))
 }
@@ -90,4 +110,23 @@ cross :: proc(u, v: Vec3) -> Vec3 {
 
 unit_vector :: proc(v: Vec3) -> Vec3 {
 	return div(v, length(v))
+}
+
+random_unit_vector :: proc() -> Vec3 {
+	for true {
+		p := random(-1, 1)
+		lensq := length_squared(p)
+		if 1e-160 < lensq && lensq <= 1 {
+			return div(p, math.sqrt(lensq))
+		}
+	}
+	unreachable()
+}
+
+random_on_hemisphere :: proc(normal: Vec3) -> Vec3 {
+	on_unit_sphere := random_unit_vector()
+	if dot(on_unit_sphere, normal) > 0.0 {
+		return on_unit_sphere
+	}
+	return neg(on_unit_sphere)
 }

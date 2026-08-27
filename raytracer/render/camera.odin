@@ -1,6 +1,7 @@
 package render
 
 import geometry "../geometry"
+import utils "../utils"
 
 Camera :: struct {
 	aspect_ratio:        f64,
@@ -85,5 +86,5 @@ get_ray :: proc(cam: Camera, i, j: int) -> geometry.Ray {
 
 sample_square :: proc() -> geometry.Vec3 {
 	// Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
-	return geometry.vec3(random_double() - 0.5, random_double() - 0.5, 0)
+	return geometry.vec3(utils.random_double() - 0.5, utils.random_double() - 0.5, 0)
 }

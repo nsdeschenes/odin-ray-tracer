@@ -112,7 +112,8 @@ render_rows :: proc(task: thread.Task) {
 ray_color :: proc(ray: geometry.Ray, world: scene.HittableList) -> geometry.Color {
 	rec: scene.HitRecord
 	if scene.hit(world, ray, geometry.interval(0, math.INF_F64), &rec) {
-		return geometry.mul_scalar(geometry.add(geometry.color(1, 1, 1), rec.normal), 0.5)
+		direction := geometry.random_on_hemisphere(rec.normal)
+		return geometry.mul_scalar(ray_color(geometry.ray(rec.p, direction), world), 0.5)
 	}
 
 	unit_direction := geometry.unit_vector(ray.dir)

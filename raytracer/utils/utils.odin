@@ -1,4 +1,4 @@
-package render
+package utils
 
 import "core:math"
 import math_rand "core:math/rand"
