@@ -116,7 +116,7 @@ ray_color :: proc(ray: geometry.Ray, depth: int, world: scene.HittableList) -> g
 	}
 
 	rec: scene.HitRecord
-	if scene.hit(world, ray, geometry.interval(0, math.INF_F64), &rec) {
+	if scene.hit(world, ray, geometry.interval(0.001, math.INF_F64), &rec) {
 		direction := geometry.random_on_hemisphere(rec.normal)
 		return geometry.mul_scalar(
 			ray_color(geometry.ray(rec.p, direction), depth - 1, world),
