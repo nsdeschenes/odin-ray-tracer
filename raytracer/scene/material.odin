@@ -1,8 +1,8 @@
 package scene
 
-import "core:reflect"
 import geometry "../geometry"
 import scene "../scene"
+import utils "../utils"
 import "core:math"
 
 Lambertian :: struct {
@@ -85,18 +85,26 @@ scatter_dielectric :: proc(
 
 	unit_direction := geometry.unit_vector(r_in.dir)
 	cos_theta := math.min(geometry.dot(geometry.neg(unit_direction), rec.normal), 1.0)
-    sin_theta := math.sqrt(1.0 - cos_theta * cos_theta)
+	sin_theta := math.sqrt(1.0 - cos_theta * cos_theta)
 
-    cannot_refract := ri * sin_theta > 1.0
-    direction: geometry.Vec3
-    if cannot_refract {
-        direction = geometry.reflect(unit_direction, rec.normal)
-    } else {
-        direction = geometry.refract(unit_direction, rec.normal, ri)
-    }
+	cannot_refract := ri * sin_theta > 1.0
+	direction: geometry.Vec3
+	if cannot_refract || dielectric_reflectance(cos_theta, ri) > utils.random_double() {
+		direction = geometry.reflect(unit_direction, rec.normal)
+	} else {
+		direction = geometry.refract(unit_direction, rec.normal, ri)
+	}
 
 	scattered^ = geometry.ray(rec.p, direction)
 	return true
+}
+
+@(private = "file")
+dielectric_reflectance :: proc(cosine, refraction_index: f64) -> f64 {
+	// Use Schlick's approximation for reflectance.
+	r0 := (1 - refraction_index) / (1 + refraction_index)
+	r0 = r0 * r0
+	return r0 + (1 - r0) * math.pow((1 - cosine), 5)
 }
 
 MaterialData :: union {

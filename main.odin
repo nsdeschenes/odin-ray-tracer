@@ -15,7 +15,10 @@ main :: proc() {
 		data = scene.lambertian(geometry.color(0.1, 0.2, 0.5)),
 	}
 	material_left := scene.Material {
-		data = scene.dielectric(1.00 / 1.33),
+		data = scene.dielectric(1.50),
+	}
+	material_bubble := scene.Material {
+		data = scene.dielectric(1.00 / 1.50),
 	}
 	material_right := scene.Material {
 		data = scene.metal(geometry.color(0.8, 0.6, 0.2), 1.0),
@@ -32,6 +35,10 @@ main :: proc() {
 	scene.add_hittable_object(
 		&world,
 		scene.sphere(geometry.point3(-1.0, 0.0, -1.0), 0.5, material_left),
+	)
+	scene.add_hittable_object(
+		&world,
+		scene.sphere(geometry.point3(-1.0, 0.0, -1.0), 0.4, material_bubble),
 	)
 	scene.add_hittable_object(
 		&world,
