@@ -11,24 +11,6 @@ lambertian :: proc(albedo: geometry.Color) -> Lambertian {
 	return Lambertian{albedo = albedo}
 }
 
-Metal :: struct {
-	albedo: geometry.Color,
-	fuzz:   f64,
-}
-
-metal :: proc(albedo: geometry.Color, fuzz: f64) -> Metal {
-	actual_fuzz := fuzz < 1 ? fuzz : 1
-	return Metal{albedo = albedo, fuzz = actual_fuzz}
-}
-
-MaterialData :: union {
-	Lambertian,
-	Metal,
-}
-
-Material :: struct {
-	data: MaterialData,
-}
 
 @(private = "file")
 scatter_lambertian :: proc(
@@ -50,6 +32,16 @@ scatter_lambertian :: proc(
 	return true
 }
 
+Metal :: struct {
+	albedo: geometry.Color,
+	fuzz:   f64,
+}
+
+metal :: proc(albedo: geometry.Color, fuzz: f64) -> Metal {
+	actual_fuzz := fuzz < 1 ? fuzz : 1
+	return Metal{albedo = albedo, fuzz = actual_fuzz}
+}
+
 @(private = "file")
 scatter_metal :: proc(
 	mat: ^Metal,
@@ -68,6 +60,44 @@ scatter_metal :: proc(
 	return geometry.dot(scattered.dir, rec.normal) > 0
 }
 
+Dielectric :: struct {
+	// Refractive index in vacuum or air, or the ratio of the material's
+	// refractive index over the refractive index of the enclosing media
+	refraction_index: f64,
+}
+
+dielectric :: proc(refraction_index: f64) -> Dielectric {
+	return Dielectric{refraction_index = refraction_index}
+}
+
+@(private = "file")
+scatter_dielectric :: proc(
+	mat: ^Dielectric,
+	r_in: geometry.Ray,
+	rec: ^scene.HitRecord,
+	attenuation: ^geometry.Color,
+	scattered: ^geometry.Ray,
+) -> bool {
+	attenuation^ = geometry.color(1.0, 1.0, 1.0)
+	ri := rec.front_face ? (1.0 / mat.refraction_index) : mat.refraction_index
+
+	unit_direction := geometry.unit_vector(r_in.dir)
+	refracted := geometry.refract(unit_direction, rec.normal, ri)
+
+	scattered^ = geometry.ray(rec.p, refracted)
+	return true
+}
+
+MaterialData :: union {
+	Lambertian,
+	Metal,
+	Dielectric,
+}
+
+Material :: struct {
+	data: MaterialData,
+}
+
 scatter :: proc(
 	mat: ^Material,
 	r_in: geometry.Ray,
@@ -80,6 +110,8 @@ scatter :: proc(
 		return scatter_lambertian(&m, r_in, rec, attenuation, scattered)
 	case Metal:
 		return scatter_metal(&m, r_in, rec, attenuation, scattered)
+	case Dielectric:
+		return scatter_dielectric(&m, r_in, rec, attenuation, scattered)
 	}
 
 	return false

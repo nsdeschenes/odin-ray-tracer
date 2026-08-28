@@ -15,7 +15,7 @@ main :: proc() {
 		data = scene.lambertian(geometry.color(0.1, 0.2, 0.5)),
 	}
 	material_left := scene.Material {
-		data = scene.metal(geometry.color(0.8, 0.8, 0.8), 0.3),
+		data = scene.dielectric(1.50),
 	}
 	material_right := scene.Material {
 		data = scene.metal(geometry.color(0.8, 0.6, 0.2), 1.0),

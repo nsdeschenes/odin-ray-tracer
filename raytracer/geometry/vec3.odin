@@ -140,3 +140,11 @@ random_on_hemisphere :: proc(normal: Vec3) -> Vec3 {
 reflect :: proc(v, n: Vec3) -> Vec3 {
 	return sub(v, mul_scalar(n, dot(v, n) * 2))
 }
+
+refract :: proc(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+	cos_theta := math.min(dot(neg(uv), n), 1.0)
+	r_out_perp := mul_scalar(add(uv, mul_scalar(n, cos_theta)), etai_over_etat)
+	r_out_parallel := mul_scalar(n, -math.sqrt(math.abs(1.0 - length_squared(r_out_perp))))
+
+	return add(r_out_perp, r_out_parallel)
+}
