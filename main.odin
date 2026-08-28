@@ -9,16 +9,16 @@ main :: proc() {
 	world := scene.hittable_list()
 
 	material_ground := scene.Material {
-		data = scene.Lambertian{albedo = geometry.color(0.8, 0.8, 0.0)},
+		data = scene.lambertian(geometry.color(0.8, 0.8, 0.0)),
 	}
 	material_center := scene.Material {
-		data = scene.Lambertian{albedo = geometry.color(0.1, 0.2, 0.5)},
+		data = scene.lambertian(geometry.color(0.1, 0.2, 0.5)),
 	}
 	material_left := scene.Material {
-		data = scene.Metal{albedo = geometry.color(0.8, 0.8, 0.8)},
+		data = scene.metal(geometry.color(0.8, 0.8, 0.8), 0.3),
 	}
 	material_right := scene.Material {
-		data = scene.Metal{albedo = geometry.color(0.8, 0.6, 0.2)},
+		data = scene.metal(geometry.color(0.8, 0.6, 0.2), 1.0),
 	}
 
 	scene.add_hittable_object(

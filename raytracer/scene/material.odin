@@ -7,8 +7,18 @@ Lambertian :: struct {
 	albedo: geometry.Color,
 }
 
+lambertian :: proc(albedo: geometry.Color) -> Lambertian {
+	return Lambertian{albedo = albedo}
+}
+
 Metal :: struct {
 	albedo: geometry.Color,
+	fuzz:   f64,
+}
+
+metal :: proc(albedo: geometry.Color, fuzz: f64) -> Metal {
+	actual_fuzz := fuzz < 1 ? fuzz : 1
+	return Metal{albedo = albedo, fuzz = actual_fuzz}
 }
 
 MaterialData :: union {
@@ -49,9 +59,13 @@ scatter_metal :: proc(
 	scattered: ^geometry.Ray,
 ) -> bool {
 	reflected := geometry.reflect(r_in.dir, rec.normal)
+	reflected = geometry.add(
+		geometry.unit_vector(reflected),
+		geometry.mul_scalar(geometry.random_unit_vector(), mat.fuzz),
+	)
 	scattered^ = geometry.ray(rec.p, reflected)
 	attenuation^ = mat.albedo
-	return true
+	return geometry.dot(scattered.dir, rec.normal) > 0
 }
 
 scatter :: proc(
