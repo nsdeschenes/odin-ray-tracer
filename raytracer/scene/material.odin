@@ -1,7 +1,9 @@
 package scene
 
+import "core:reflect"
 import geometry "../geometry"
 import scene "../scene"
+import "core:math"
 
 Lambertian :: struct {
 	albedo: geometry.Color,
@@ -82,9 +84,18 @@ scatter_dielectric :: proc(
 	ri := rec.front_face ? (1.0 / mat.refraction_index) : mat.refraction_index
 
 	unit_direction := geometry.unit_vector(r_in.dir)
-	refracted := geometry.refract(unit_direction, rec.normal, ri)
+	cos_theta := math.min(geometry.dot(geometry.neg(unit_direction), rec.normal), 1.0)
+    sin_theta := math.sqrt(1.0 - cos_theta * cos_theta)
 
-	scattered^ = geometry.ray(rec.p, refracted)
+    cannot_refract := ri * sin_theta > 1.0
+    direction: geometry.Vec3
+    if cannot_refract {
+        direction = geometry.reflect(unit_direction, rec.normal)
+    } else {
+        direction = geometry.refract(unit_direction, rec.normal, ri)
+    }
+
+	scattered^ = geometry.ray(rec.p, direction)
 	return true
 }
 
