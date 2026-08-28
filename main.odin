@@ -7,13 +7,35 @@ import scene "./raytracer/scene"
 main :: proc() {
 	// World
 	world := scene.hittable_list()
+
+	material_ground := scene.Material {
+		data = scene.Lambertian{albedo = geometry.color(0.8, 0.8, 0.0)},
+	}
+	material_center := scene.Material {
+		data = scene.Lambertian{albedo = geometry.color(0.1, 0.2, 0.5)},
+	}
+	material_left := scene.Material {
+		data = scene.Metal{albedo = geometry.color(0.8, 0.8, 0.8)},
+	}
+	material_right := scene.Material {
+		data = scene.Metal{albedo = geometry.color(0.8, 0.6, 0.2)},
+	}
+
 	scene.add_hittable_object(
 		&world,
-		scene.Sphere{center = geometry.point3(0, 0, -1), radius = 0.5},
+		scene.sphere(geometry.point3(0.0, -100.5, -1.0), 100.0, material_ground),
 	)
 	scene.add_hittable_object(
 		&world,
-		scene.Sphere{center = geometry.point3(0, -100.5, -1), radius = 100},
+		scene.sphere(geometry.point3(0.0, 0.0, -1.2), 0.5, material_center),
+	)
+	scene.add_hittable_object(
+		&world,
+		scene.sphere(geometry.point3(-1.0, 0.0, -1.0), 0.5, material_left),
+	)
+	scene.add_hittable_object(
+		&world,
+		scene.sphere(geometry.point3(1.0, 0.0, -1.0), 0.5, material_right),
 	)
 
 	aspect_ratio := 16.0 / 9.0

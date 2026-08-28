@@ -99,7 +99,7 @@ render_rows :: proc(task: thread.Task) {
 			pixel_color := geometry.color(0, 0, 0)
 			for sample := 0; sample < job.camera.samples_per_pixel; sample += 1 {
 				r := get_ray(job.camera, i, j)
-				geometry.add_assign(&pixel_color, ray_color(r, job.camera.max_depth, job.world^))
+				geometry.add_assign(&pixel_color, ray_color(r, job.camera.max_depth, job.world))
 			}
 
 			index := j * job.camera.image_width + i
@@ -109,7 +109,7 @@ render_rows :: proc(task: thread.Task) {
 }
 
 @(private)
-ray_color :: proc(ray: geometry.Ray, depth: int, world: scene.HittableList) -> geometry.Color {
+ray_color :: proc(ray: geometry.Ray, depth: int, world: ^scene.HittableList) -> geometry.Color {
 	// If we've exceeded the ray bounce limit, no more light is gathered.
 	if depth <= 0 {
 		return geometry.color(0, 0, 0)
@@ -117,11 +117,12 @@ ray_color :: proc(ray: geometry.Ray, depth: int, world: scene.HittableList) -> g
 
 	rec: scene.HitRecord
 	if scene.hit(world, ray, geometry.interval(0.001, math.INF_F64), &rec) {
-		direction := geometry.add(rec.normal, geometry.random_unit_vector())
-		return geometry.mul_scalar(
-			ray_color(geometry.ray(rec.p, direction), depth - 1, world),
-			0.5,
-		)
+		scattered: geometry.Ray
+		attenuation: geometry.Color
+		if scene.scatter(rec.mat, ray, &rec, &attenuation, &scattered) {
+			return geometry.mul_vec(attenuation, ray_color(scattered, depth - 1, world))
+		}
+		return geometry.color(0, 0, 0)
 	}
 
 	unit_direction := geometry.unit_vector(ray.dir)

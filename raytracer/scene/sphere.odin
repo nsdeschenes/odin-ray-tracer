@@ -6,16 +6,16 @@ import "core:math"
 Sphere :: struct {
 	center: geometry.Point3,
 	radius: f64,
-    mat: ^Material
+	mat:    Material,
 }
 
-sphere :: proc(center: geometry.Point3, radius: f64) -> Sphere {
-    return Sphere{center=center, radius=radius}
+sphere :: proc(center: geometry.Point3, radius: f64, mat: Material) -> Sphere {
+	return Sphere{center = center, radius = radius, mat = mat}
 }
 
 @(private)
 hit_sphere :: proc(
-	sphere: Sphere,
+	sphere: ^Sphere,
 	r: geometry.Ray,
 	ray_t: geometry.Interval,
 	rec: ^HitRecord,
@@ -45,7 +45,7 @@ hit_sphere :: proc(
 	rec.p = geometry.at(r, rec.t)
 	outward_normal := geometry.div(geometry.sub(rec.p, sphere.center), sphere.radius)
 	set_face_normal(rec, r, outward_normal)
-    rec.mat = sphere.mat
+	rec.mat = &sphere.mat
 
 
 	return true

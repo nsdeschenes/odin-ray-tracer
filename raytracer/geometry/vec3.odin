@@ -136,3 +136,7 @@ random_on_hemisphere :: proc(normal: Vec3) -> Vec3 {
 	}
 	return neg(on_unit_sphere)
 }
+
+reflect :: proc(v, n: Vec3) -> Vec3 {
+	return sub(v, mul_scalar(n, dot(v, n) * 2))
+}

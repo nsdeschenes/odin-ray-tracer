@@ -25,14 +25,14 @@ Hittable :: union {
 
 @(private)
 hit_hittable :: proc(
-	h: Hittable,
+	h: ^Hittable,
 	ray: geometry.Ray,
 	ray_t: geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
-	switch obj in h {
+	switch &obj in h {
 	case Sphere:
-		return hit(obj, ray, ray_t, rec)
+		return hit(&obj, ray, ray_t, rec)
 	}
 
 	return false

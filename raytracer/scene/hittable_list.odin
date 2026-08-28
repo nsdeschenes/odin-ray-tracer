@@ -34,7 +34,7 @@ clear_hittable_list :: proc(list: ^HittableList) {
 
 @(private)
 hit_hittable_list :: proc(
-	list: HittableList,
+	list: ^HittableList,
 	ray: geometry.Ray,
 	ray_t: geometry.Interval,
 	rec: ^HitRecord,
@@ -43,8 +43,8 @@ hit_hittable_list :: proc(
 	hit_anything := false
 	closest_so_far := ray_t.max
 
-	for object in list.objects {
-		if (hit(object, ray, geometry.interval(ray_t.min, closest_so_far), &temp_rec)) {
+	for &object in list.objects {
+		if (hit(&object, ray, geometry.interval(ray_t.min, closest_so_far), &temp_rec)) {
 			hit_anything = true
 			closest_so_far = temp_rec.t
 			rec^ = temp_rec
