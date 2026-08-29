@@ -1,21 +1,25 @@
 package render
 
-import "core:math"
 import geometry "../geometry"
 import utils "../utils"
+import "core:math"
 
 Camera :: struct {
-	aspect_ratio:        f64,
-	image_width:         int,
-	image_height:        int,
-	samples_per_pixel:   int,
-	pixel_samples_scale: f64,
-	max_depth:           int,
-	vfov:                int,
-	center:              geometry.Point3,
-	pixel00_loc:         geometry.Point3,
-	pixel_delta_u:       geometry.Vec3,
-	pixel_delta_v:       geometry.Vec3,
+	aspect_ratio:        f64, // Ratio of image width over height
+	image_width:         int, // Rendered image width in pixel count
+	image_height:        int, // Rendered image height
+	samples_per_pixel:   int, // Count of random samples for each pixel
+	pixel_samples_scale: f64, // Color scale factor for a sum of pixel samples
+	max_depth:           int, // Maximum number of ray bounces into scene
+	vfov:                int, // Vertical view angle (field of view)
+	lookfrom:            geometry.Point3, // Point camera is looking from
+	lookat:              geometry.Point3, // Point camera is looking at
+	vup:                 geometry.Vec3, // Camera-relative "up" direction
+	center:              geometry.Point3, // Camera center
+	pixel00_loc:         geometry.Point3, // Location of pixel 0, 0
+	pixel_delta_u:       geometry.Vec3, // Offset to pixel to the right
+	pixel_delta_v:       geometry.Vec3, // Offset to pixel below
+	u, v, w:             geometry.Vec3, // Camera frame basis vectors
 }
 
 initialize :: proc(
@@ -24,24 +28,32 @@ initialize :: proc(
 	samples_per_pixel: int = 10,
 	max_depth: int = 10,
 	vfov: int = 90,
+	lookfrom: geometry.Point3,
+	lookat: geometry.Point3,
+	vup: geometry.Vec3,
 ) -> Camera {
-	pixel_samples_scale := 1.0 / cast(f64)samples_per_pixel
-
 	image_height := cast(int)(cast(f64)image_width / aspect_ratio)
 	image_height = (image_height < 1) ? 1 : image_height
-	center := geometry.point3(0, 0, 0)
+
+	pixel_samples_scale := 1.0 / cast(f64)samples_per_pixel
+	center := lookfrom
 
 	// Determine viewport dimensions
-	focal_length := 1.0
-    theta := utils.degrees_to_radians(cast(f64)vfov)
-    h := math.tan(theta / 2)
+	focal_length := geometry.length(geometry.sub(lookfrom, lookat))
+	theta := utils.degrees_to_radians(cast(f64)vfov)
+	h := math.tan(theta / 2)
 	viewport_height := 2.0 * h * focal_length
 	viewport_width := viewport_height * (cast(f64)image_width / cast(f64)image_height)
 
+	// Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+	w := geometry.unit_vector(geometry.sub(lookfrom, lookat))
+	u := geometry.unit_vector(geometry.cross(vup, w))
+	v := geometry.cross(w, u)
+
 	// Calculate the vectors across the horizontal and down the
 	// vertical viewport edges
-	viewport_u := geometry.vec3(viewport_width, 0, 0)
-	viewport_v := geometry.vec3(0, -viewport_height, 0)
+	viewport_u := geometry.mul_scalar(u, viewport_width) // Vector across viewport horizontal edge
+	viewport_v := geometry.mul_scalar(geometry.neg(v), viewport_height) // Vector down viewport vertical edge
 
 	// Calculate the horizontal and vertical delta vectors
 	// from pixel to pixel
@@ -51,10 +63,10 @@ initialize :: proc(
 	// Calculate the location of the upper left panel
 	viewport_upper_left := geometry.sub(
 		geometry.sub(
-			geometry.sub(center, geometry.vec3(0, 0, cast(f64)focal_length)),
-			geometry.div(viewport_u, cast(f64)2),
+			geometry.sub(center, geometry.mul_scalar(w, focal_length)),
+			geometry.div(viewport_u, 2),
 		),
-		geometry.div(viewport_v, cast(f64)2),
+		geometry.div(viewport_v, 2),
 	)
 
 	pixel00_loc := geometry.add(
@@ -74,6 +86,12 @@ initialize :: proc(
 		pixel00_loc = pixel00_loc,
 		pixel_delta_u = pixel_delta_u,
 		pixel_delta_v = pixel_delta_v,
+		lookat = lookat,
+		lookfrom = lookfrom,
+		vup = vup,
+		u = u,
+		v = v,
+		w = w,
 	}
 }
 
