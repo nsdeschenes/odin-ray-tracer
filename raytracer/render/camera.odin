@@ -1,5 +1,6 @@
 package render
 
+import "core:math"
 import geometry "../geometry"
 import utils "../utils"
 
@@ -10,6 +11,7 @@ Camera :: struct {
 	samples_per_pixel:   int,
 	pixel_samples_scale: f64,
 	max_depth:           int,
+	vfov:                int,
 	center:              geometry.Point3,
 	pixel00_loc:         geometry.Point3,
 	pixel_delta_u:       geometry.Vec3,
@@ -21,6 +23,7 @@ initialize :: proc(
 	image_width: int = 100,
 	samples_per_pixel: int = 10,
 	max_depth: int = 10,
+	vfov: int = 90,
 ) -> Camera {
 	pixel_samples_scale := 1.0 / cast(f64)samples_per_pixel
 
@@ -30,7 +33,9 @@ initialize :: proc(
 
 	// Determine viewport dimensions
 	focal_length := 1.0
-	viewport_height := 2.0
+    theta := utils.degrees_to_radians(cast(f64)vfov)
+    h := math.tan(theta / 2)
+	viewport_height := 2.0 * h * focal_length
 	viewport_width := viewport_height * (cast(f64)image_width / cast(f64)image_height)
 
 	// Calculate the vectors across the horizontal and down the
@@ -64,6 +69,7 @@ initialize :: proc(
 		samples_per_pixel = samples_per_pixel,
 		pixel_samples_scale = pixel_samples_scale,
 		max_depth = max_depth,
+		vfov = vfov,
 		center = center,
 		pixel00_loc = pixel00_loc,
 		pixel_delta_u = pixel_delta_u,
