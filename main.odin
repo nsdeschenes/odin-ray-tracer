@@ -50,10 +50,12 @@ main :: proc() {
 	image_width := 400
 	samples_per_pixel := 100
 	max_depth := 50
-	vfov := 90
+	vfov := 20
 	lookfrom := geometry.point3(-2, 2, 1)
 	lookat := geometry.point3(0, 0, -1)
 	vup := geometry.vec3(0, 1, 0)
+	defocus_angle := 10.0
+	focus_dist := 3.4
 
 	cam := render.initialize(
 		aspect_ratio,
@@ -64,6 +66,8 @@ main :: proc() {
 		lookfrom,
 		lookat,
 		vup,
+		defocus_angle,
+		focus_dist,
 	)
 
 	render.render(cam, &world)

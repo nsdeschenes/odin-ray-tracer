@@ -148,3 +148,13 @@ refract :: proc(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
 
 	return add(r_out_perp, r_out_parallel)
 }
+
+random_in_unit_disk :: proc() -> Vec3 {
+	for true {
+		p := vec3(utils.random_double(-1, 1), utils.random_double(-1, 1), 0)
+		if length_squared(p) < 1 {
+			return p
+		}
+	}
+	unreachable()
+}
