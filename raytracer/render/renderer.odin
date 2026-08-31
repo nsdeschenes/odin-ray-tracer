@@ -61,6 +61,7 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 	job_count := (camera.image_height + ROWS_PER_JOB - 1) / ROWS_PER_JOB
 	jobs := make([]RenderJob, job_count)
 
+    fmt.print("\rRunning thread pool")
 	for job_index := 0; job_index < job_count; job_index += 1 {
 		start_y := job_index * ROWS_PER_JOB
 		end_y := min(start_y + ROWS_PER_JOB, camera.image_height)
@@ -78,6 +79,7 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 
 	// Wait for all jobs
 	thread.pool_finish(&pool)
+    fmt.print("\rPool finished.")
 
 	for j := 0; j < camera.image_height; j += 1 {
 		fmt.print("\rScanlines remaining: ", camera.image_height - j, " ")
