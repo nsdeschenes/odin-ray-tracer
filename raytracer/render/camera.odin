@@ -112,7 +112,7 @@ initialize :: proc(
 	}
 }
 
-get_ray :: proc(cam: Camera, i, j: int) -> geometry.Ray {
+get_ray :: proc(cam: ^Camera, i, j: int) -> geometry.Ray {
 	// Construct a camera ray originating from the defocus disk and directed
 	// at a randomly sampled point around the pixel location i, j.
 	offset := sample_square()
@@ -138,7 +138,7 @@ sample_square :: proc() -> geometry.Vec3 {
 	return geometry.vec3(utils.random_double() - 0.5, utils.random_double() - 0.5, 0)
 }
 
-defocus_disk_sample :: proc(cam: Camera) -> geometry.Point3 {
+defocus_disk_sample :: proc(cam: ^Camera) -> geometry.Point3 {
 	p := geometry.random_in_unit_disk()
 	return geometry.add(
 		cam.center,

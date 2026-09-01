@@ -104,5 +104,5 @@ main :: proc() {
 		focus_dist,
 	)
 
-	render.render(cam, &world)
+	render.render(&cam, &world)
 }

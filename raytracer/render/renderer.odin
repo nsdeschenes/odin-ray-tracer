@@ -2,6 +2,7 @@ package render
 
 import geometry "../geometry"
 import scene "../scene"
+import "core:bufio"
 import "core:fmt"
 import "core:math"
 import "core:os"
@@ -11,7 +12,7 @@ import "core:thread"
 THREAD_COUNT :: 8
 
 @(private)
-ROWS_PER_JOB :: 8
+ROWS_PER_JOB :: 3
 
 @(private)
 RenderJob :: struct {
@@ -19,10 +20,10 @@ RenderJob :: struct {
 	end_y:   int,
 	pixels:  []geometry.Vec3,
 	world:   ^scene.HittableList,
-	camera:  Camera,
+	camera:  ^Camera,
 }
 
-render :: proc(camera: Camera, world: ^scene.HittableList) {
+render :: proc(camera: ^Camera, world: ^scene.HittableList) {
 	// Renderer
 	file, open_err := os.open("image.ppm", os.O_WRONLY | os.O_CREATE | os.O_TRUNC)
 
@@ -46,6 +47,10 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 		return
 	}
 
+    writer: bufio.Writer
+    bufio.writer_init(&writer, os.to_stream(file), 64 * 1024)
+    defer bufio.writer_destroy(&writer)
+
 	pixel_count := camera.image_width * camera.image_height
 	pixels := make([]geometry.Vec3, pixel_count)
 	defer delete(pixels)
@@ -60,8 +65,9 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 	// Create jobs
 	job_count := (camera.image_height + ROWS_PER_JOB - 1) / ROWS_PER_JOB
 	jobs := make([]RenderJob, job_count)
+	defer delete(jobs)
 
-    fmt.print("\rRunning thread pool")
+	fmt.print("\rRunning thread pool")
 	for job_index := 0; job_index < job_count; job_index += 1 {
 		start_y := job_index * ROWS_PER_JOB
 		end_y := min(start_y + ROWS_PER_JOB, camera.image_height)
@@ -79,15 +85,21 @@ render :: proc(camera: Camera, world: ^scene.HittableList) {
 
 	// Wait for all jobs
 	thread.pool_finish(&pool)
-    fmt.print("\rPool finished.")
+	fmt.print("\rPool finished.")
+
+    output := bufio.writer_to_writer(&writer)
 
 	for j := 0; j < camera.image_height; j += 1 {
 		fmt.print("\rScanlines remaining: ", camera.image_height - j, " ")
 		for i := 0; i < camera.image_width; i += 1 {
 			index := j * camera.image_width + i
-			write_color(file, pixels[index])
+			write_color(output, pixels[index])
 		}
 	}
+
+    if err := bufio.writer_flush(&writer); err != nil {
+        fmt.println("Failed to write image.")
+    }
 
 	fmt.println("\rDone.                 ")
 }
