@@ -3,10 +3,11 @@ package geometry
 Ray :: struct {
 	orig: Point3,
 	dir:  Vec3,
+	tm:   f64,
 }
 
-ray :: proc(origin: Point3, direction: Vec3) -> Ray {
-	return Ray{orig = origin, dir = direction}
+ray :: proc(origin: Point3, direction: Vec3, time: f64 = 0) -> Ray {
+	return Ray{orig = origin, dir = direction, tm = time}
 }
 
 origin :: proc(r: Ray) -> Point3 {
