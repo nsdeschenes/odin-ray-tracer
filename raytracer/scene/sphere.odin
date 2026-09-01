@@ -47,7 +47,7 @@ hit_sphere :: proc(
 	ray_t: geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
-	current_center := geometry.at(sphere.center, sphere.center.tm)
+	current_center := geometry.at(sphere.center, r.tm)
 	oc := geometry.sub(current_center, r.orig)
 	a := geometry.length_squared(r.dir)
 	h := geometry.dot(r.dir, oc)

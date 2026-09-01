@@ -34,7 +34,14 @@ main :: proc() {
 					sphere_material := scene.Material {
 						data = scene.lambertian(albedo),
 					}
-					scene.add_hittable_object(&world, scene.sphere(center, 0.2, sphere_material))
+					center2 := geometry.add(
+						center,
+						geometry.vec3(0, utils.random_double(0, 0.5), 0),
+					)
+					scene.add_hittable_object(
+						&world,
+						scene.sphere(center, center2, 0.2, sphere_material),
+					)
 				} else if choose_mat < 0.95 {
 					// metal
 					albedo := geometry.random(0.5, 1)
@@ -72,8 +79,8 @@ main :: proc() {
 
 
 	aspect_ratio := 16.0 / 9.0
-	image_width := 1200
-	samples_per_pixel := 500
+	image_width := 400
+	samples_per_pixel := 100
 	max_depth := 50
 
 	vfov := 20
