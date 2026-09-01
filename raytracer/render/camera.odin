@@ -128,8 +128,9 @@ get_ray :: proc(cam: Camera, i, j: int) -> geometry.Ray {
 
 	ray_origin := (cam.defocus_angle <= 0) ? cam.center : defocus_disk_sample(cam)
 	ray_direction := geometry.sub(pixel_sample, ray_origin)
+    ray_time := utils.random_double()
 
-	return geometry.ray(ray_origin, ray_direction)
+	return geometry.ray(ray_origin, ray_direction, ray_time)
 }
 
 sample_square :: proc() -> geometry.Vec3 {
