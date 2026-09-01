@@ -4,13 +4,40 @@ import geometry "../geometry"
 import "core:math"
 
 Sphere :: struct {
-	center: geometry.Point3,
+	center: geometry.Ray,
 	radius: f64,
 	mat:    Material,
 }
 
-sphere :: proc(center: geometry.Point3, radius: f64, mat: Material) -> Sphere {
-	return Sphere{center = center, radius = radius, mat = mat}
+@(private = "file")
+stationary_sphere :: proc(center: geometry.Point3, radius: f64, mat: Material) -> Sphere {
+
+	return Sphere {
+		center = geometry.ray(center, geometry.vec3(0, 0, 0)),
+		radius = math.max(radius, 0),
+		mat = mat,
+	}
+}
+
+@(private = "file")
+moving_sphere :: proc(
+	center1: geometry.Point3,
+	center2: geometry.Point3,
+	radius: f64,
+	mat: Material,
+) -> Sphere {
+
+	return Sphere {
+		center = geometry.ray(center1, geometry.sub(center2, center1)),
+		radius = math.max(radius, 0),
+		mat = mat,
+	}
+}
+
+
+sphere :: proc {
+	stationary_sphere,
+	moving_sphere,
 }
 
 @(private)
@@ -20,7 +47,8 @@ hit_sphere :: proc(
 	ray_t: geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
-	oc := geometry.sub(sphere.center, r.orig)
+	current_center := geometry.at(sphere.center, sphere.center.tm)
+	oc := geometry.sub(current_center, r.orig)
 	a := geometry.length_squared(r.dir)
 	h := geometry.dot(r.dir, oc)
 	c := geometry.length_squared(oc) - sphere.radius * sphere.radius
@@ -43,7 +71,7 @@ hit_sphere :: proc(
 
 	rec.t = root
 	rec.p = geometry.at(r, rec.t)
-	outward_normal := geometry.div(geometry.sub(rec.p, sphere.center), sphere.radius)
+	outward_normal := geometry.div(geometry.sub(rec.p, current_center), sphere.radius)
 	set_face_normal(rec, r, outward_normal)
 	rec.mat = &sphere.mat
 
