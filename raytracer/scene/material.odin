@@ -29,7 +29,7 @@ scatter_lambertian :: proc(
 		scatter_direction = rec.normal
 	}
 
-	scattered^ = geometry.ray(rec.p, scatter_direction)
+	scattered^ = geometry.ray(rec.p, scatter_direction, r_in.tm)
 	attenuation^ = mat.albedo
 	return true
 }
@@ -57,7 +57,7 @@ scatter_metal :: proc(
 		geometry.unit_vector(reflected),
 		geometry.mul_scalar(geometry.random_unit_vector(), mat.fuzz),
 	)
-	scattered^ = geometry.ray(rec.p, reflected)
+	scattered^ = geometry.ray(rec.p, reflected, r_in.tm)
 	attenuation^ = mat.albedo
 	return geometry.dot(scattered.dir, rec.normal) > 0
 }
@@ -95,7 +95,7 @@ scatter_dielectric :: proc(
 		direction = geometry.refract(unit_direction, rec.normal, ri)
 	}
 
-	scattered^ = geometry.ray(rec.p, direction)
+	scattered^ = geometry.ray(rec.p, direction, r_in.tm)
 	return true
 }
 
