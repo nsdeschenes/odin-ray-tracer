@@ -2,7 +2,6 @@ package scene
 
 import geometry "../geometry"
 
-
 HitRecord :: struct {
 	p:          geometry.Point3,
 	normal:     geometry.Vec3,
@@ -21,6 +20,7 @@ set_face_normal :: proc(rec: ^HitRecord, ray: geometry.Ray, outward_normal: geom
 
 Hittable :: union {
 	Sphere,
+	BVH_Node,
 }
 
 @(private)
@@ -33,7 +33,10 @@ hit_hittable :: proc(
 	switch &obj in h {
 	case Sphere:
 		return hit(&obj, ray, ray_t, rec)
+	case BVH_Node:
+		return hit(&obj, ray, ray_t, rec)
 	}
+
 
 	return false
 }
@@ -41,6 +44,8 @@ hit_hittable :: proc(
 bounding_box :: proc(h: Hittable) -> AABB {
 	switch obj in h {
 	case Sphere:
+		return obj.bbox
+	case BVH_Node:
 		return obj.bbox
 	}
 

@@ -23,3 +23,8 @@ random_double :: proc {
 	random_double_args,
 	random_double_no_args,
 }
+
+random_int :: proc(min, max: int) -> int {
+	// Returns a random integer in [min,max].
+	return cast(int)(random_double(cast(f64)min, cast(f64)max + 1))
+}

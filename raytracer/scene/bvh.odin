@@ -2,6 +2,8 @@ package scene
 
 import geometry "../geometry"
 import scene "../scene"
+import utils "../utils"
+import "core:slice"
 
 BVH_Node :: struct {
 	left:  ^Hittable,
@@ -16,7 +18,40 @@ bvh_node_hittable_list :: proc(list: ^HittableList) -> BVH_Node {
 
 @(private = "file")
 bvh_node_dynamic_list :: proc(objects: []Hittable, start: int, end: int) -> BVH_Node {
-	return BVH_Node{}
+	axis := utils.random_int(0, 2)
+
+	comparator := box_x_compare
+
+	if axis == 1 {
+		comparator = box_y_compare
+	} else if axis == 2 {
+		comparator = box_z_compare
+	}
+
+	object_span := end - start
+
+
+	left := new(Hittable)
+	right := new(Hittable)
+
+	if object_span == 1 {
+		left^ = objects[start]
+		right^ = objects[start]
+	} else if object_span == 2 {
+		left^ = objects[start]
+		right^ = objects[start + 1]
+	} else {
+		slice.sort_by(objects[start:end], comparator)
+
+		mid := start + object_span / 2
+
+		left^ = bvh_node(objects, start, mid)
+		right^ = bvh_node(objects, mid, end)
+	}
+
+	bbox := aabb(bounding_box(left^), bounding_box(right^))
+
+	return BVH_Node{left = left, right = right, bbox = bbox}
 }
 
 bvh_node :: proc {
