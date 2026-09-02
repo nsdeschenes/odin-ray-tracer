@@ -27,7 +27,7 @@ hittable_list :: proc {
 
 add_hittable_object :: proc(list: ^HittableList, hittable: Hittable) {
 	append(&list.objects, hittable)
-	list.bbox = aabb(list.bbox, bounding_box(hittable))
+	list.bbox = aabb(list.bbox, bounding_box(hittable,))
 }
 
 clear_hittable_list :: proc(list: ^HittableList) {
@@ -38,15 +38,16 @@ clear_hittable_list :: proc(list: ^HittableList) {
 hit_hittable_list :: proc(
 	list: ^HittableList,
 	ray: geometry.Ray,
-	ray_t: geometry.Interval,
+	ray_t: ^geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
 	temp_rec: HitRecord
 	hit_anything := false
 	closest_so_far := ray_t.max
+    candidate_ray_t := geometry.interval(ray_t^.min, closest_so_far)
 
 	for &object in list.objects {
-		if (hit(&object, ray, geometry.interval(ray_t.min, closest_so_far), &temp_rec)) {
+		if (hit(&object, ray, &candidate_ray_t, &temp_rec)) {
 			hit_anything = true
 			closest_so_far = temp_rec.t
 			rec^ = temp_rec

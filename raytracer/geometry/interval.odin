@@ -40,7 +40,7 @@ contains :: proc(i: Interval, x: f64) -> bool {
 	return i.min <= x && x <= i.max
 }
 
-surrounds :: proc(i: Interval, x: f64) -> bool {
+surrounds :: proc(i: ^Interval, x: f64) -> bool {
 	return i.min < x && x < i.max
 }
 

@@ -27,7 +27,7 @@ Hittable :: union {
 hit_hittable :: proc(
 	h: ^Hittable,
 	ray: geometry.Ray,
-	ray_t: geometry.Interval,
+	ray_t: ^geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
 	switch &obj in h {

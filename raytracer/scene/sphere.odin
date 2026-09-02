@@ -60,7 +60,7 @@ sphere :: proc {
 hit_sphere :: proc(
 	sphere: ^Sphere,
 	r: geometry.Ray,
-	ray_t: geometry.Interval,
+	ray_t: ^geometry.Interval,
 	rec: ^HitRecord,
 ) -> bool {
 	current_center := geometry.at(sphere.center, r.tm)

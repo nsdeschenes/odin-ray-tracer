@@ -130,7 +130,8 @@ ray_color :: proc(ray: geometry.Ray, depth: int, world: ^scene.HittableList) -> 
 	}
 
 	rec: scene.HitRecord
-	if scene.hit(world, ray, geometry.interval(0.001, math.INF_F64), &rec) {
+    ray_t := geometry.interval(0.001, math.INF_F64)
+	if scene.hit(world, ray, &ray_t, &rec) {
 		scattered: geometry.Ray
 		attenuation: geometry.Color
 		if scene.scatter(rec.mat, ray, &rec, &attenuation, &scattered) {
