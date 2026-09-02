@@ -6,19 +6,30 @@ Interval :: struct {
 	min, max: f64,
 }
 
-@(private)
+@(private = "file")
 interval_no_args :: proc() -> Interval {
 	return Interval{min = -math.INF_F64, max = math.INF_F64}
 }
 
-@(private)
+@(private = "file")
 interval_with_args :: proc(min: f64, max: f64) -> Interval {
+	return Interval{min = min, max = max}
+}
+
+@(private = "file")
+interval_from_intervals :: proc(a, b: Interval) -> Interval {
+	// Create the interval tightly enclosing the two input intervals.
+
+	min := a.min <= b.min ? a.min : b.min
+	max := a.max >= b.max ? a.max : b.max
+
 	return Interval{min = min, max = max}
 }
 
 interval :: proc {
 	interval_no_args,
 	interval_with_args,
+	interval_from_intervals,
 }
 
 size :: proc(i: Interval) -> f64 {

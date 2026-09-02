@@ -17,10 +17,19 @@ aabb_intervals :: proc(x, y, z: geometry.Interval) -> AABB {
 }
 
 @(private = "file")
-aabb_points :: proc(a, b: ^geometry.Point3) -> AABB {
+aabb_points :: proc(a, b: geometry.Vec3) -> AABB {
 	x := (a.e[0] <= b.e[0]) ? geometry.interval(a.e[0], b.e[0]) : geometry.interval(b.e[0], a.e[0])
 	y := (a.e[1] <= b.e[1]) ? geometry.interval(a.e[1], b.e[1]) : geometry.interval(b.e[1], a.e[1])
 	z := (a.e[2] <= b.e[2]) ? geometry.interval(a.e[2], b.e[2]) : geometry.interval(b.e[2], a.e[2])
+
+	return AABB{x = x, y = y, z = z}
+}
+
+@(private = "file")
+aabb_boxes :: proc(box0, box1: AABB) -> AABB {
+	x := geometry.interval(box0.x, box1.x)
+	y := geometry.interval(box0.y, box1.y)
+	z := geometry.interval(box0.z, box1.z)
 
 	return AABB{x = x, y = y, z = z}
 }
@@ -29,6 +38,7 @@ aabb :: proc {
 	aabb_no_args,
 	aabb_intervals,
 	aabb_points,
+	aabb_boxes,
 }
 
 axis_interval :: proc(aabb: AABB, n: int) -> geometry.Interval {
@@ -59,14 +69,14 @@ hit_aabb :: proc(a: ^AABB, r: geometry.Ray, ray_t: ^geometry.Interval) -> bool {
 			if t0 > ray_t.min {ray_t.min = t0}
 			if t1 < ray_t.max {ray_t.max = t1}
 		} else {
-            if t1 > ray_t.min {ray_t.min = t1}
-            if t0 < ray_t.max {ray_t.max = t0}
+			if t1 > ray_t.min {ray_t.min = t1}
+			if t0 < ray_t.max {ray_t.max = t0}
 		}
 
-        if ray_t.max <= ray_t.min {
-            return false
-        }
+		if ray_t.max <= ray_t.min {
+			return false
+		}
 	}
 
-    return true
+	return true
 }

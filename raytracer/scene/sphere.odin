@@ -7,15 +7,18 @@ Sphere :: struct {
 	center: geometry.Ray,
 	radius: f64,
 	mat:    Material,
+	bbox:   AABB,
 }
 
 @(private = "file")
 stationary_sphere :: proc(center: geometry.Point3, radius: f64, mat: Material) -> Sphere {
 
+	rvec := geometry.vec3(radius, radius, radius)
 	return Sphere {
 		center = geometry.ray(center, geometry.vec3(0, 0, 0)),
 		radius = math.max(radius, 0),
 		mat = mat,
+		bbox = aabb(geometry.sub(center, rvec), geometry.add(center, rvec)),
 	}
 }
 
@@ -27,10 +30,23 @@ moving_sphere :: proc(
 	mat: Material,
 ) -> Sphere {
 
+	center := geometry.ray(center1, geometry.sub(center2, center1))
+	rvec := geometry.vec3(radius, radius, radius)
+	box1 := aabb(
+		geometry.sub(geometry.at(center, 0), rvec),
+		geometry.add(geometry.at(center, 0), rvec),
+	)
+	box2 := aabb(
+		geometry.sub(geometry.at(center, 1), rvec),
+		geometry.add(geometry.at(center, 1), rvec),
+	)
+
+
 	return Sphere {
-		center = geometry.ray(center1, geometry.sub(center2, center1)),
+		center = center,
 		radius = math.max(radius, 0),
 		mat = mat,
+		bbox = aabb(box1, box2),
 	}
 }
 
