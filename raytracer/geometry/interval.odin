@@ -38,9 +38,14 @@ clamp :: proc(interval: Interval, x: f64) -> f64 {
 		return interval.min
 	}
 
-    if x > interval.max {
-        return interval.max
-    }
+	if x > interval.max {
+		return interval.max
+	}
 
 	return x
+}
+
+expand :: proc(i: Interval, delta: f64) -> Interval {
+	padding := delta / 2
+	return interval(i.min - padding, i.max + padding)
 }
