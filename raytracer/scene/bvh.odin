@@ -2,7 +2,6 @@ package scene
 
 import geometry "../geometry"
 import scene "../scene"
-import utils "../utils"
 import "core:slice"
 
 BVH_Node :: struct {
@@ -18,7 +17,13 @@ bvh_node_hittable_list :: proc(list: ^HittableList) -> BVH_Node {
 
 @(private = "file")
 bvh_node_dynamic_list :: proc(objects: []Hittable, start: int, end: int) -> BVH_Node {
-	axis := utils.random_int(0, 2)
+	// Build the bounding box of the span of source objects.
+	bbox := aabb()
+	for object_index := start; object_index < end; object_index += 1 {
+		bbox = aabb(bbox, bounding_box(objects[object_index]))
+	}
+
+	axis := longest_axis(bbox)
 
 	comparator := box_x_compare
 
@@ -48,8 +53,6 @@ bvh_node_dynamic_list :: proc(objects: []Hittable, start: int, end: int) -> BVH_
 		left^ = bvh_node(objects, start, mid)
 		right^ = bvh_node(objects, mid, end)
 	}
-
-	bbox := aabb(bounding_box(left^), bounding_box(right^))
 
 	return BVH_Node{left = left, right = right, bbox = bbox}
 }

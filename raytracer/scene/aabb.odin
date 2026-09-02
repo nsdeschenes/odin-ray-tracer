@@ -1,6 +1,7 @@
 package scene
 
 import geometry "../geometry"
+import "core:math"
 
 AABB :: struct {
 	x, y, z: geometry.Interval,
@@ -8,7 +9,8 @@ AABB :: struct {
 
 @(private = "file")
 aabb_no_args :: proc() -> AABB {
-	return AABB{}
+    empty := geometry.interval(math.INF_F64, -math.INF_F64)
+	return AABB{x = empty, y = empty, z = empty}
 }
 
 @(private = "file")
@@ -79,4 +81,13 @@ hit_aabb :: proc(a: ^AABB, r: geometry.Ray, ray_t: ^geometry.Interval) -> bool {
 	}
 
 	return true
+}
+
+longest_axis :: proc(aabb: AABB) -> int {
+	// Returns the index of the longest axis of the bounding box.
+	if geometry.size(aabb.x) > geometry.size(aabb.y) {
+		return geometry.size(aabb.x) > geometry.size(aabb.z) ? 0 : 2
+	} else {
+		return geometry.size(aabb.y) > geometry.size(aabb.z) ? 1 : 2
+	}
 }
