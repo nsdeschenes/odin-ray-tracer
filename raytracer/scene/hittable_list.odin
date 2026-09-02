@@ -4,6 +4,7 @@ import geometry "../geometry"
 
 HittableList :: struct {
 	objects: [dynamic]Hittable,
+	bbox:    AABB,
 }
 
 @(private)
@@ -26,6 +27,7 @@ hittable_list :: proc {
 
 add_hittable_object :: proc(list: ^HittableList, hittable: Hittable) {
 	append(&list.objects, hittable)
+	list.bbox = aabb(list.bbox, bounding_box(hittable))
 }
 
 clear_hittable_list :: proc(list: ^HittableList) {

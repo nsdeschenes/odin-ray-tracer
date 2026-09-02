@@ -37,3 +37,12 @@ hit_hittable :: proc(
 
 	return false
 }
+
+bounding_box :: proc(h: Hittable) -> AABB {
+	switch obj in h {
+	case Sphere:
+		return obj.bbox
+	}
+
+	return {}
+}
