@@ -77,6 +77,7 @@ main :: proc() {
 	}
 	scene.add_hittable_object(&world, scene.sphere(geometry.point3(4, 1, 0), 1.0, material_3))
 
+	world = scene.hittable_list(scene.bvh_node(&world))
 
 	aspect_ratio := 16.0 / 9.0
 	image_width := 400

@@ -13,7 +13,7 @@ BVH_Node :: struct {
 
 @(private = "file")
 bvh_node_hittable_list :: proc(list: ^HittableList) -> BVH_Node {
-	return bvh_node_dynamic_list(list.objects[:], 0, size_of(list.objects[:]))
+	return bvh_node_dynamic_list(list.objects[:], 0, len(list.objects[:]))
 }
 
 @(private = "file")
@@ -78,4 +78,22 @@ hit_bvh_node :: proc(
 	hit_right := hit(b.right, r, &right_ray_t, rec)
 
 	return hit_left || hit_right
+}
+
+box_compare :: proc(a, b: Hittable, axis_index: int) -> bool {
+	a_axis_interval := axis_interval(bounding_box(a), axis_index)
+	b_axis_interval := axis_interval(bounding_box(b), axis_index)
+	return a_axis_interval.min < b_axis_interval.min
+}
+
+box_x_compare :: proc(a, b: Hittable) -> bool {
+	return box_compare(a, b, 0)
+}
+
+box_y_compare :: proc(a, b: Hittable) -> bool {
+	return box_compare(a, b, 1)
+}
+
+box_z_compare :: proc(a, b: Hittable) -> bool {
+	return box_compare(a, b, 2)
 }
