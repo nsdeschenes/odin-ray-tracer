@@ -6,7 +6,7 @@ HitRecord :: struct {
 	p:          geometry.Point3,
 	normal:     geometry.Vec3,
 	mat:        ^Material,
-	t:          f64,
+	t, u, v:    f64,
 	front_face: bool,
 }
 
