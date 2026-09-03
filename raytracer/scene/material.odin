@@ -6,19 +6,34 @@ import utils "../utils"
 import "core:math"
 
 Lambertian :: struct {
-	albedo: geometry.Color,
+	tex: ^Texture,
 }
 
-lambertian :: proc(albedo: geometry.Color) -> Lambertian {
-	return Lambertian{albedo = albedo}
+@(private = "file")
+lambertian_albedo :: proc(albedo: geometry.Color) -> Lambertian {
+	tex := new(Texture)
+	tex^ = Solid_Color {
+		albedo = albedo,
+	}
+
+	return Lambertian{tex = tex}
 }
 
+@(private = "file")
+lambertian_tex :: proc(tex: ^Texture) -> Lambertian {
+	return Lambertian{tex = tex}
+}
+
+lambertian :: proc {
+	lambertian_albedo,
+	lambertian_tex,
+}
 
 @(private = "file")
 scatter_lambertian :: proc(
 	mat: ^Lambertian,
 	r_in: geometry.Ray,
-	rec: ^scene.HitRecord,
+	rec: ^HitRecord,
 	attenuation: ^geometry.Color,
 	scattered: ^geometry.Ray,
 ) -> bool {
@@ -30,7 +45,7 @@ scatter_lambertian :: proc(
 	}
 
 	scattered^ = geometry.ray(rec.p, scatter_direction, r_in.tm)
-	attenuation^ = mat.albedo
+	attenuation^ = value(mat.tex, rec.u, rec.v, &rec.p)
 	return true
 }
 

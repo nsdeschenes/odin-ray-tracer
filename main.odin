@@ -4,14 +4,18 @@ import geometry "./raytracer/geometry"
 import render "./raytracer/render"
 import scene "./raytracer/scene"
 import utils "./raytracer/utils"
-import "core:math"
 
 main :: proc() {
 	// World
 	world := scene.hittable_list()
 
+	c1 := geometry.color(0.2, 0.3, 0.1)
+	c2 := geometry.color(0.9, 0.9, 0.9)
+	checker := new(scene.Texture)
+	checker^ = scene.checker_texture(0.32, &c1, &c2)
+
 	material_ground := scene.Material {
-		data = scene.lambertian(geometry.color(0.5, 0.5, 0.5)),
+		data = scene.lambertian(checker),
 	}
 	scene.add_hittable_object(
 		&world,
