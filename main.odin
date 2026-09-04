@@ -5,7 +5,7 @@ import render "./raytracer/render"
 import scene "./raytracer/scene"
 import utils "./raytracer/utils"
 
-main :: proc() {
+bouncing_spheres :: proc() {
 	// World
 	world := scene.hittable_list()
 
@@ -110,4 +110,63 @@ main :: proc() {
 	)
 
 	render.render(&cam, &world)
+}
+
+checkered_spheres :: proc() {
+	// World
+	world := scene.hittable_list()
+
+	c1 := geometry.color(0.2, 0.3, 0.1)
+	c2 := geometry.color(0.9, 0.9, 0.9)
+	checker := new(scene.Texture)
+	checker^ = scene.checker_texture(0.32, &c1, &c2)
+
+	sphere_1 := scene.Material {
+		data = scene.lambertian(checker),
+	}
+	scene.add_hittable_object(&world, scene.sphere(geometry.point3(0, -10, 0), 10, sphere_1))
+
+	sphere_2 := scene.Material {
+		data = scene.lambertian(checker),
+	}
+	scene.add_hittable_object(&world, scene.sphere(geometry.point3(0, 10, 0), 10, sphere_2))
+
+	world = scene.hittable_list(scene.bvh_node(&world))
+
+	aspect_ratio := 16.0 / 9.0
+	image_width := 400
+	samples_per_pixel := 100
+	max_depth := 50
+
+	vfov := 20
+	lookfrom := geometry.point3(12, 2, 3)
+	lookat := geometry.point3(0, 0, 0)
+	vup := geometry.vec3(0, 1, 0)
+
+	defocus_angle := 0.6
+	focus_dist := 10.0
+
+	cam := render.initialize(
+		aspect_ratio,
+		image_width,
+		samples_per_pixel,
+		max_depth,
+		vfov,
+		lookfrom,
+		lookat,
+		vup,
+		defocus_angle,
+		focus_dist,
+	)
+
+	render.render(&cam, &world)
+}
+
+main :: proc() {
+	switch 2 {
+	case 1:
+		bouncing_spheres()
+	case 2:
+		checkered_spheres()
+	}
 }
